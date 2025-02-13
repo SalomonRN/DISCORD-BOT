@@ -12,6 +12,7 @@ import mongo
 from utils import create_user_in_db, get_advice, create_server_in_db, server_exist, change_active_status_user, delete_server_data, change_active_status, update_server_info
 from events import UserEvents
 from web_scrapping.valo_scrapping import search
+import web_server 
 
 TOKEN = getenv("DISCORD_TOKEN")
 APP_ID = getenv("APP_ID")
@@ -180,6 +181,7 @@ async def advice(interaction: discord.Interaction):
     await interaction.response.send_message(get_advice())
 
 async def main():
+    web_server.keep_alive()
     global user_event
     user_event = UserEvents(bot)
     await bot.add_cog(user_event)
