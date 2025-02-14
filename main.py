@@ -3,7 +3,7 @@ from discord import app_commands
 from typing import Literal
 import asyncio
 import discord
-from task import Task
+# from task import Task
 from discord.ext import commands
 import discord.ext
 import discord.ext.commands
@@ -132,13 +132,13 @@ async def hola(interaction: discord.Interaction):
     await interaction.response.send_message(f"¡Hola {interaction.user.mention}!")
 
 @bot.tree.command(name="valoinfo", description="Busca tus estadísticas de valorant 😊")
-@app_commands.describe(username="Tu Riot ID, incluye el tagline, o sea el #", type="Elige un tipo de juego para buscar tus estadísticas")
-async def valoinfo(interaction: discord.Interaction, username: str, type: Literal["competitive", "all", "unrated"]):
-    await interaction.response.send_message(f"⏳ Buscando información de {username} en {type} esto puede tardar unos segundos o minutos...", ephemeral=True)
+@app_commands.describe(username="Tu Riot ID, incluye el tagline, o sea el #", game="Elige un tipo de juego para buscar tus estadísticas")
+async def valoinfo(interaction: discord.Interaction, username: str, game: Literal["competitive", "all", "unrated"]):
+    await interaction.response.send_message(f"⏳ Buscando información de {username} en {game} esto puede tardar unos segundos o minutos...", ephemeral=True)
     
     # await interaction.response.defer() 
         
-    stats = await search(f"https://valorant.op.gg/profile/{username.replace('#', '-')}?statQueueId={type}")
+    stats = await search(f"https://valorant.op.gg/profile/{username.replace('#', '-')}?statQueueId={game}")
     if isinstance(stats, str):
         return await interaction.followup.send("Ups,", stats.lower())
     else:
