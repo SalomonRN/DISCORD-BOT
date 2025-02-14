@@ -66,12 +66,11 @@ def update_list(id, server_id: int, remove = False):
     querry = {'$set': {"servers_id": new}}
     mongo.update_user_by_id(id, querry)
     
-def get_advice() -> str:
+async def get_advice() -> str:
     from googletrans import Translator
     import requests
     translator = Translator()
 
     text = requests.get("https://api.adviceslip.com/advice").json()['slip']
-    translate = translator.translate(text['advice'], src='en', dest='es')
+    translate = await translator.translate(text['advice'], src='en', dest='es')
     return translate.text
-
