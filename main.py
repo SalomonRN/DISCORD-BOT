@@ -178,7 +178,7 @@ async def change_notify(interaction: discord.Interaction):
 
 @bot.tree.command(name="advice", description="Te da un consejo totalmente random. La traducción es hecha por google translate, y no es exacta.")
 async def advice(interaction: discord.Interaction):
-    await interaction.response.send_message(get_advice())
+    await interaction.response.send_message(await get_advice())
 
 async def main():
     web_server.keep_alive()
