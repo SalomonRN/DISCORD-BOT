@@ -138,7 +138,7 @@ async def valoinfo(interaction: discord.Interaction, username: str, type: Litera
     
     # await interaction.response.defer() 
         
-    stats = await search(f"https://valorant.op.gg/profile/{username.replace("#", "-")}?statQueueId={type}")
+    stats = await search(f"https://valorant.op.gg/profile/{username.replace('#', '-')}?statQueueId={type}")
     if isinstance(stats, str):
         return await interaction.followup.send("Ups,", stats.lower())
     else:
@@ -174,7 +174,7 @@ async def change_notify(interaction: discord.Interaction):
     
     notify = change_active_status_user(interaction.user.id)
     
-    await interaction.response.send_message(f"Se ha cambiado a un estado de {"SI" if notify else 'NO'} permitir notificaciones", ephemeral=True)
+    await interaction.response.send_message(f"Se ha cambiado a un estado de {'SI' if notify else 'NO'} permitir notificaciones", ephemeral=True)
 
 @bot.tree.command(name="advice", description="Te da un consejo totalmente random. La traducción es hecha por google translate, y no es exacta.")
 async def advice(interaction: discord.Interaction):
