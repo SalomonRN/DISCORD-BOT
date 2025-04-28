@@ -35,7 +35,7 @@ class CommandsBot(discord.ext.commands.Cog):
         channel = interaction.user.voice.channel
         await channel.connect()
 
-    @app_commands.command()
+    @app_commands.command(description="Envía un mensaje al voice que tú quieras sin la necesidad de entrar 😉")
     async def message(self, interaction: discord.Interaction):
         if not self.DEBUG:
             return await interaction.response.send_message("Este comando no está finalizado y no lo quiero quitar :)", 
@@ -56,19 +56,21 @@ class CommandsBot(discord.ext.commands.Cog):
             await interaction.response.send_message("Este comando no está aún bien hecho, así que puede dar errores, tales como no hacer nada o explotar la Luna, tenlo presente.", ephemeral=True, delete_after=3)
             await sleep(5)
         
-        users = [user for user in interaction.guild.members if not user.bot]
+        users = [user for user in interaction.guild.members if not user.bot and user.activity]
+        if not users:
+            return await interaction.response.send_message("Parece que nadie está jugando algo...", ephemeral=True, delete_after=3)
+        
         for user in users:
-            if not user.activity: continue
             if user.activity.type == discord.ActivityType.playing:
                 await interaction.response.send_message(f"{user.name} está jugando actualmente {user.activity.name}", ephemeral=True)
-
-    @app_commands.command(description="Comandos para ver si tienes permisos de admin.")
+        
+    @app_commands.command(description="Comando para ver si tienes permisos de admin.")
     async def perms(self, interaction: discord.Interaction):
         if not interaction.user.resolved_permissions.administrator:
             return await interaction.response.send_message('No tienes permisos para ejecutar comandos "avanzados"', ephemeral=True)
         return await interaction.response.send_message('SI tienes permisos para ejecutar comandos "avanzados"', ephemeral=True)      
         
-    @app_commands.command()
+    @app_commands.command(description="Es un secreto 🤫")
     async def init_users(self, interaction: discord.Interaction):
         """ Inicializa los usuarios en la base de datos """
         if not interaction.user.resolved_permissions.administrator:
@@ -77,6 +79,7 @@ class CommandsBot(discord.ext.commands.Cog):
         members = [member for member in interaction.guild.members if not member.bot]
         for user in members:
             create_user_in_db(user)
+        return await interaction.response.send_message('Parece que ya.', ephemeral=True)
 
     @app_commands.command(name="ping", description="Responde con un pong")
     async def ping(self, interaction: discord.Interaction):
@@ -128,7 +131,7 @@ class CommandsBot(discord.ext.commands.Cog):
             
     @app_commands.command(name="change_notify", description="Cambia el estado de las notificaciones cuando juegas")
     async def change_notify(self, interaction: discord.Interaction):
-        await interaction.response.send_message("Este comando no está aún bien hecho, así que puede dar errores, tales como no hacer nada o explotar el Sol, tenlo presente.", ephemeral=True, delete_after=3)
+        await interaction.response.send_message("Este comando no está aún bien hecho, así que puede dar errores, tales como no hacer nada o explotar el Sol, tenlo presente.", ephemeral=True, delete_after=5)
         if interaction.user.bot: return
         
         notify = change_active_status_user(interaction.user.id)
@@ -144,8 +147,8 @@ class CommandsBot(discord.ext.commands.Cog):
         
     @app_commands.command(name="event", description="Crea un evento de reunion.")
     @app_commands.describe(title="Titulo del evento",
-                           date="Fecha del evento. (Formato YYYY-MM-DD)", time="Hora del evento. (Formato HH:MM y de 24 Horas)",
-                           users="Lista de usuarios, separados por coma (@Usuario1,)")
+                           date="Fecha del evento. (Formato DD-MM-YYYY)", time="Hora del evento. (Formato HH:MM y de 24 Horas)",
+                           users="Lista de usuarios, separados por coma (@Usuario1, @Usuario2, @Usuario3)")
     async def event(self, interaction: discord.Interaction, title: str, date: str, time: str, users:str):
         try:
             users_l = [int(user[2:-1]) for user in list(map(lambda x: x.replace(" ", ""), users.split(',')))]
@@ -163,9 +166,9 @@ class CommandsBot(discord.ext.commands.Cog):
             users_l.append(interaction.user.id) 
                 
         try:
-            date = datetime.datetime.strptime(f"{date} {time}", "%Y-%m-%d %H:%M")
+            date = datetime.datetime.strptime(f"{date} {time}", "%d-%m-%Y %H:%M")
         except Exception as e:
-            return await interaction.response.send_message("ERROR. Seguro que la fecha y hora está bien escrita?", delete_after=3.0, silent=True)
+            return await interaction.response.send_message("ERROR. Seguro que la fecha y hora está bien escrita?", delete_after=3.0, ephemeral=True)
             
         if date <= datetime.datetime.now():
             return await interaction.response.send_message("La fecha y hora no pueden ser pasadas")
