@@ -11,6 +11,8 @@ from command_bot import CommandsBot
 from utils import server_exist, create_server_in_db, change_active_status, update_server_info, delete_server_data
 from discord import app_commands
 
+import web_server
+
 TOKEN = getenv("DISCORD_TOKEN")
 APP_ID = getenv("APP_ID")
 PUBLIC_KEY = getenv("PUBLIC_KEY")
@@ -76,6 +78,7 @@ async def on_guild_update(before: discord.Guild, after: discord.Guild):
         
 async def main():
     global user_event
+    web_server.keep_alive()
     user_event = UserEvents(bot)
     command_cog = CommandsBot(bot, DEBUG)
     await bot.add_cog(user_event)
