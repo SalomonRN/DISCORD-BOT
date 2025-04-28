@@ -99,7 +99,7 @@ class CommandsBot(discord.ext.commands.Cog):
         
         # await interaction.response.defer() 
             
-        stats = await search(f"https://valorant.op.gg/profile/{username.replace("#", "-")}?statQueueId={game}")
+        stats = await search(f"https://valorant.op.gg/profile/{username.replace('#', '-')}&statQueueId={game}")
         if isinstance(stats, str):
             return await interaction.followup.send("Ups,", stats.lower())
         else:
