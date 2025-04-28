@@ -12,7 +12,7 @@ class Task(commands.Cog):
     def cog_unload(self):
         self.event.cancel()
    
-    @tasks.loop(seconds=15.0)
+    @tasks.loop(seconds=60.0)
     async def event(self):
     
         events: list[dict] = await get_evetns()
@@ -25,7 +25,7 @@ class Task(commands.Cog):
     # LA HORA ACTUAL ES MENOR A LA DEL EVENTO, Y ESTA EN UN RANGO DE 5 MINUTOS MENOS
             if datetime.now() < date_event and datetime.now() >= (date_event - timedelta(minutes=5)):
                 for user in users:
-                    self.send_message(user, "EY EL EVENTO VA A INICIAR :)")
+                    await self.send_message(user, "EY EL EVENTO VA A INICIAR :)")
                 continue
             
     # LA HORA ACTUAL ES MAYOR A LA DEL EVENTO, Y ESTA EN UN RANGO DE 5 MINUTOS MAS
