@@ -19,7 +19,7 @@ class UserEvents(discord.ext.commands.Cog):
     @discord.ext.commands.Cog.listener()
     async def on_message(self, message: discord.message.Message):
         """ Evento que se ejecuta cuando se recibe cualquier mensaje """
-        
+
         message.content = message.content.lower()
         
         if message.author == self.bot.user:
@@ -91,6 +91,8 @@ class UserEvents(discord.ext.commands.Cog):
 
         # Verifica si el usuario tiene actividad, y si esa actividad es de un juego
         if after.activity and after.activity.type == discord.ActivityType.playing:
+            if after.activity.name == before.activity.name:
+                return
             if not user.get('notify', False):
                 return await channel.send(f"{after.name} no tiene la opcion de Notificar cuando juega :c")    
             return await channel.send(f"{after.name} está jugando actualmente {after.activity.name}")
