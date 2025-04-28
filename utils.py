@@ -99,10 +99,7 @@ def create_event(username: str, title: str, date: datetime, server_id: int, user
         "server": server_id,
         "users": users
     }
-    print("MANDAMOS QUERRY")
-    print(querry)
     mongo.create_event(querry)
-    print("YA QUEDÓ EL EVENTO INSERTADO")
     
 async def get_evetns() -> list:
     return mongo.get_events()

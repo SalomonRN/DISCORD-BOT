@@ -1,5 +1,6 @@
 import pymongo
 import pymongo.database
+import pymongo.errors
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import sys
@@ -28,7 +29,10 @@ def get_all(database, collection):
         print(element)
 
 def create_user(querry: dict):
-    DATABASE.get_collection("users").insert_one(querry)
+    try:
+        DATABASE.get_collection("users").insert_one(querry)
+    except pymongo.errors.DuplicateKeyError as error:
+        pass
 
 def get_user_by_id(id: int) -> dict:
     return DATABASE.get_collection("users").find_one({"discord_id": id})
@@ -43,7 +47,6 @@ def update_user_by_id(id: int, update_querry: dict) -> dict:
 def create_server(querry: dict):
     DATABASE.get_collection("servers").insert_one(querry)
 
-
 def get_server(id: int) -> dict:
     return DATABASE.get_collection("servers").find_one({"id": id})
 
@@ -55,17 +58,14 @@ def update_server(id: int, querry: dict):
         return_document=pymongo.ReturnDocument.AFTER,
     )
 
-
 def delete_server(id: int):
     return DATABASE.get_collection("servers").find_one_and_delete({"id": id})
-
 
 def delete_server_data(querry: dict):
     DATABASE.get_collection("users").delete_many(querry)
 
 def create_event(querry: dict):
     DATABASE.get_collection("events").insert_one(querry)
-    print("EVENTO INSERTADO")
 
 def get_events() -> list[dict]: 
     return DATABASE.get_collection("events").find({})
