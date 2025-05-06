@@ -78,6 +78,4 @@ if __name__ == "__main__":
     # DATABASE.get_collection("users").create_index("discord_id" , unique = True)
     from datetime import datetime, timedelta
     # create_event({"username": "salo1", "event_name": "EPA juegos?", "date": datetime(2025, 4, 27, 5, 15), "users": [1,2,3,4,5]})
-    
-    
     CLIENT.close()

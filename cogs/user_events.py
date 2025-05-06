@@ -1,7 +1,7 @@
 import discord
 import discord.ext
 import discord.ext.commands
-from utils import user_exist, create_user_in_db, get_user, get_server
+from utils.mongo_utils import user_exist, create_user_in_db, get_user, get_server
 
 class UserEvents(discord.ext.commands.Cog):
     def __init__(self, bot: discord.ext.commands.Bot):
@@ -65,7 +65,8 @@ class UserEvents(discord.ext.commands.Cog):
         channel_id = server.get('admin_channel')
         if not channel_id: 
             await member.guild.owner.create_dm()
-            return await member.guild.owner.dm_channel.send(f"DEBES CONFIGURAR EL CANAL DE LOGS EN TU SERVER {member.guild.name}")
+            return
+            # return await member.guild.owner.dm_channel.send(f"DEBES CONFIGURAR EL CANAL DE LOGS EN TU SERVER {member.guild.name}")
 
         if after.channel:
             await self.guild.get_channel(int(channel_id)).send(f"{member.name} entró al canal de voz {after.channel.name}")
@@ -96,15 +97,3 @@ class UserEvents(discord.ext.commands.Cog):
             if not user.get('notify', False):
                 return await channel.send(f"{after.name} no tiene la opcion de Notificar cuando juega :c")    
             return await channel.send(f"{after.name} está jugando actualmente {after.activity.name}")
-
-class RolEvents():
-    @discord.ext.commands.Cog.listener()
-    
-    async def on_guild_role_create(self, role: discord.role.Role):
-        print(role.created_at)
-        print(type(role))
-
-    @discord.ext.commands.Cog.listener()
-    async def on_guild_role_delete(self, role: discord.role.Role):
-        print(role)
-        print(type(role))

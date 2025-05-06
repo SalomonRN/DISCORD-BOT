@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta
 from discord.ext import tasks, commands
 from discord import Embed, Colour, Member
-from utils import get_evetns, delete_event
+from utils.mongo_utils import get_evetns, delete_event
 
-class Task(commands.Cog):
+class EventTask(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.index = 0
@@ -24,8 +24,9 @@ class Task(commands.Cog):
             
     # LA HORA ACTUAL ES MENOR A LA DEL EVENTO, Y ESTA EN UN RANGO DE 5 MINUTOS MENOS
             if datetime.now() < date_event and datetime.now() >= (date_event - timedelta(minutes=5)):
+                msg = f"Ey!! El evento {event.get("event_name", "de hoy")} ya va a iniciar, no te olvides te ingresar al voice en {server.name}, o si no sos puto!"
                 for user in users:
-                    await self.send_message(user, "EY EL EVENTO VA A INICIAR :)")
+                    await self.send_message(user, msg)
                 continue
             
     # LA HORA ACTUAL ES MAYOR A LA DEL EVENTO, Y ESTA EN UN RANGO DE 5 MINUTOS MAS
@@ -40,18 +41,17 @@ class Task(commands.Cog):
                         if user in channel.members:
                     # POR LO TANTO LO ELIMINAMOS DE USUARIOS AUSENTES
                             users_ausentes.remove(user)
-                
-                
+
                 for user in users_ausentes:
-                    await self.send_message(user, "Ey el evento ya inició y te están esperando. Unete!")
+                    msg = f"Ey el evento {event.get("event_name", "de hoy")} en {server.name}, hecho por {event.get("username", "tu migo")},  inició y te están esperando. Unete o culo si no."
+                    await self.send_message(user, msg)
                 continue
-            
+
     # SI EL EVENTO ES MAYOR A LA HORA DEL EVENTO MAS CINCO, ELIMINAR DICHO EVENTO
             if date_event + timedelta(5) > datetime.now():
                 delete_event(event.get('_id'))
                 continue
-            
-    
+
     async def send_message(self, user: Member, message: str):
         try:
             await user.create_dm()

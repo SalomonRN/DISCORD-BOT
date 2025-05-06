@@ -1,27 +1,25 @@
 import asyncio
 import discord
-from task import Task
+from tasks.event_task import EventTask
 from discord.ext import commands
 import discord.ext
 import discord.ext.commands
 from os import getenv
-import mongo
-from events import UserEvents
-from command_bot import CommandsBot
-from utils import server_exist, create_server_in_db, change_active_status, update_server_info, delete_server_data
+import utils.mongo as mongo
+from cogs.user_events import UserEvents
+from cogs.command_bot import CommandsBot
+from utils.mongo_utils import server_exist, create_server_in_db, change_active_status, update_server_info, delete_server_data
 from discord import app_commands
 
 TOKEN = getenv("DISCORD_TOKEN")
 APP_ID = getenv("APP_ID")
 PUBLIC_KEY = getenv("PUBLIC_KEY")
 MY_SERVER_ID = getenv("MY_SERVER_ID")
-DEBUG = bool(getenv("TOKEN", False))
-
+DEBUG = bool(getenv("DEBUG", False))
 MAIN_GUILD = None
-intents = discord.Intents.all()
 
+intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='>',intents=intents)
-user_event = None
 
 @bot.event
 async def on_connect():
@@ -32,13 +30,12 @@ async def on_ready():
     global MAIN_GUILD
     MAIN_GUILD = bot.get_guild(int(MY_SERVER_ID)) # El id de mi servidor
     mongo.init_connection()
-    user_event.guild = MAIN_GUILD    
     synced = await bot.tree.sync()  # Sincroniza los comandos de barra
     
     print(f"Se sincronizaron {len(synced)} comandos de barra!")
     print(f'We have logged in as {bot.user}')
-    await bot.add_cog(Task(bot))
-    # ESTO SOLO ES PARA MI SERVIDOR
+    await bot.add_cog(EventTask(bot))
+
     await MAIN_GUILD.get_channel(802609235912949810).send("Bot funcionando :)")
 
 @bot.command()
@@ -59,7 +56,7 @@ async def on_guild_join(guild: discord.Guild):
         change_active_status(guild.id)
         
     await guild.owner.create_dm()
-    await guild.owner.dm_channel.send("ASI FUNCIONA EL BOT....")
+    await guild.owner.dm_channel.send("Gracias por agregar el bot. ")
         
 @bot.event
 async def on_guild_remove(guild: discord.Guild):
@@ -75,11 +72,8 @@ async def on_guild_update(before: discord.Guild, after: discord.Guild):
         update_server_info(after)
         
 async def main():
-    global user_event
-    user_event = UserEvents(bot)
-    command_cog = CommandsBot(bot, DEBUG)
-    await bot.add_cog(user_event)
-    await bot.add_cog(command_cog)
+    await bot.add_cog(UserEvents(bot))
+    await bot.add_cog(CommandsBot(bot, DEBUG))
     await bot.start(TOKEN)
 
 # await bot.run(TOKEN)
