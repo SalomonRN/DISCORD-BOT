@@ -87,3 +87,14 @@ def delete_event(Object_id):
         "_id" : Object_id
     }
     return mongo.delete_event(querry)
+
+def create_log_bug(description: str, server: str, user: str, code: int, command: str):
+    querry = {
+        "date": datetime.now(),
+        "description": description,
+        "server": server,
+        "user": user,
+        "code": code,
+        "command": command,
+    }
+    mongo.create_log(querry)
