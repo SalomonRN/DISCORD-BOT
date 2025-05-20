@@ -14,6 +14,9 @@ DATABASE = None
 def init_connection():
     global CLIENT, DATABASE
     try:
+        if not URI:
+            print("NO SE ENCONTRÓ LA URI DE MONGO")
+            sys.exit()
         CLIENT = MongoClient(URI, server_api=ServerApi("1"))
         CLIENT.admin.command("ping")
         DATABASE = CLIENT.get_database("discord")
@@ -73,9 +76,16 @@ def get_events() -> list[dict]:
 def delete_event(querry):
     DATABASE.get_collection("events").delete_one(querry)
 
+def create_log(querry: dict):
+    DATABASE.get_collection("logs").insert_one(querry)
+
+def create_idea(querry: dict):
+    DATABASE.get_collection("ideas").insert_one(querry)
+
 if __name__ == "__main__":
     init_connection()
     # DATABASE.get_collection("users").create_index("discord_id" , unique = True)
     from datetime import datetime, timedelta
     # create_event({"username": "salo1", "event_name": "EPA juegos?", "date": datetime(2025, 4, 27, 5, 15), "users": [1,2,3,4,5]})
     CLIENT.close()
+

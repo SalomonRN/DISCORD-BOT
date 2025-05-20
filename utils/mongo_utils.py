@@ -1,4 +1,6 @@
 import discord
+
+from utils.errors import UserNotFound
 from . import mongo
 from datetime import datetime
 
@@ -18,7 +20,7 @@ def create_user_in_db(user: discord.Member):
         "name": user.name,
         "notify": False,
         "active": True,
-        "server_id": user.guild.id,
+        "notify_to": []
     }
     mongo.create_user(querry)
 
@@ -31,6 +33,23 @@ def get_user(id: int) -> dict:
         return {"error": "Algo salió mal, contacte al administrados para ver que pasó."}
     else:
         return res
+
+def update_user_notify_list(user_id: int, new_user: int, add: bool) -> bool:
+    user = mongo.get_user_by_id(user_id+1)
+    
+    if not user:
+        raise UserNotFound()
+   
+    if add and new_user not in user.get("notify_to"):
+        user.get("notify_to").append(new_user)
+    elif not add and new_user in user.get("notify_to"):
+        user.get("notify_to").remove(new_user)
+    else:
+        return False
+    
+    # Si no se hace nada, no se actualiza la base de datos
+    update_querry = {"$set": {"notify_to": user.get("notify_to")}}
+    user = mongo.update_user_by_id(user_id, update_querry)
 
 def change_active_status_user(id: int) -> str:
     user = mongo.get_user_by_id(id)
@@ -87,3 +106,23 @@ def delete_event(Object_id):
         "_id" : Object_id
     }
     return mongo.delete_event(querry)
+
+def create_log_bug(description: str, server: str, user: str, code: int, command: str):
+    querry = {
+        "created_at": datetime.now(),
+        "description": description,
+        "server": server,
+        "user": user,
+        "code": code,
+        "command": command,
+    }
+    mongo.create_log(querry)
+
+def create_idea(description: str, server: str, user: str):
+    querry = {
+        "created_at": datetime.now(),
+        "description": description,
+        "server": server,
+        "user": user
+    }
+    mongo.create_idea(querry)
