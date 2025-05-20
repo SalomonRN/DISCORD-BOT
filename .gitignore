@@ -1,4 +1,4 @@
-venv/
+.venv/
 
 __pycache__
 
@@ -6,7 +6,6 @@ __pycache__
 
 notas.txt
 
-test.py
-test2.py
-test3.py
-riot.py
+/my_tests
+
+voz.mp3
