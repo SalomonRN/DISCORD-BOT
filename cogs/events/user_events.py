@@ -6,16 +6,7 @@ from utils.mongo_utils import user_exist, create_user_in_db, get_user, get_serve
 class UserEvents(discord.ext.commands.Cog):
     def __init__(self, bot: discord.ext.commands.Bot):
         self.bot = bot
-        self.guild: discord.Guild = None
     
-    def set_guild(func):
-        """ Decorador para obtener el servidor en el cual se ejecuta el evento """
-        async def wrapper(self, *args):
-            self.guild = self.bot.get_guild(args[0].guild.id)
-            return await func(self, *args)
-        wrapper.__name__ = func.__name__
-        return wrapper
-
     @discord.ext.commands.Cog.listener()
     async def on_message(self, message: discord.message.Message):
         """ Evento que se ejecuta cuando se recibe cualquier mensaje """
@@ -30,7 +21,6 @@ class UserEvents(discord.ext.commands.Cog):
         return await self.bot.process_commands(message)
     
     @discord.ext.commands.Cog.listener()
-    @set_guild
     async def on_member_join(self, member: discord.member.Member):
         """ Evento que se ejecuta cuando un usuario entra al servidor """
         await member.create_dm()
@@ -43,12 +33,10 @@ class UserEvents(discord.ext.commands.Cog):
             create_user_in_db(member)
 
     @discord.ext.commands.Cog.listener()
-    @set_guild
     async def on_member_remove(self, member: discord.member.Member):
         pass
 
     @discord.ext.commands.Cog.listener()
-    @set_guild
     async def on_invite_create(self, invite: discord.invite.Invite):
         """ Evento que se ejecuta cuando se crea una invitacion """
         server = get_server(invite.guild.id)
@@ -60,20 +48,8 @@ class UserEvents(discord.ext.commands.Cog):
         await channel.send(f"{invite.inviter} creó una invitacion {invite.url}, se invitó a: {invite.target_user}")
 
     @discord.ext.commands.Cog.listener()
-    async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
-        server = get_server(member.guild.id)
-        channel_id = server.get('admin_channel')
-        if not channel_id: 
-            await member.guild.owner.create_dm()
-            return
-            # return await member.guild.owner.dm_channel.send(f"DEBES CONFIGURAR EL CANAL DE LOGS EN TU SERVER {member.guild.name}")
-
-        if after.channel:
-            await self.guild.get_channel(int(channel_id)).send(f"{member.name} entró al canal de voz {after.channel.name}")
-
-    @discord.ext.commands.Cog.listener()
-    @set_guild
     async def on_presence_update(self, before: discord.Member, after: discord.Member):
+        #
         """ Evento que se ejecuta cuando un usuario cambia su estado """
         
         if before.bot: return
@@ -87,8 +63,8 @@ class UserEvents(discord.ext.commands.Cog):
         
         if not channel_noti:
             await before.guild.owner.create_dm()
-            return await before.guild.owner.dm_channel.send(f"DEBES CONFIGURAR PARA LAS NOTI EN EN TU SERVER {self.guild.name}")       
-        channel =  self.guild.get_channel(channel_noti)
+            return await before.guild.owner.dm_channel.send(f"DEBES CONFIGURAR PARA LAS NOTI EN EN TU SERVER {before.guild.name}")       
+        channel =  before.guild.get_channel(channel_noti)
 
         # Verifica si el usuario tiene actividad, y si esa actividad es de un juego
         if after.activity and after.activity.type == discord.ActivityType.playing:
