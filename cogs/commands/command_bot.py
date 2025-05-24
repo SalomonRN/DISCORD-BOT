@@ -6,11 +6,11 @@ from discord import Colour, app_commands
 from discord.embeds import Embed
 import discord.ext
 import discord.ext.commands
+from cogs.views import UserCreateView
 from utils.errors import UserNotFound
-from utils.mongo_utils import create_idea, create_user_in_db, change_active_status_user, create_event, create_log_bug, update_user_notify_list
+from utils.mongo_utils import create_idea, create_user_in_db, change_active_status_user, create_event, create_log_bug, delete_user_by_id, update_user_notify_list
 from utils.utils import get_advice, create_audio
 from utils.web_scrapping.valo_scrapping import search
-from ..views import UserNotifyView
 
 class CommandsBot(discord.ext.commands.Cog):
     def __init__(self, bot: discord.ext.commands.Bot):
@@ -31,21 +31,22 @@ class CommandsBot(discord.ext.commands.Cog):
         advice = await get_advice()
         return await interaction.followup.send(advice)     
 
-    @app_commands.command(name="inituser", description="Crea tu usuario en la base de datos.")
+    @app_commands.command(name="createuser", description="Crea tu usuario en la base de datos.")
     async def create_user(self, interaction: discord.Interaction):
-        interaction.user
-
-    @app_commands.command(description="Es un secreto 🤫")
-    async def init_users(self, interaction: discord.Interaction):
-        """ Inicializa los usuarios en la base de datos """
-        if not interaction.user.resolved_permissions.administrator:
-            return await interaction.response.send_message('NO tienes permisos para ejecutar este comando', ephemeral=True)
-        
-        members = [member for member in interaction.guild.members if not member.bot]
-        for user in members:
-            create_user_in_db(user)
-        return await interaction.response.send_message('Parece que ya.', ephemeral=True)
-
+        embed = Embed()
+        embed.color = Colour.blue()
+        embed.set_author(name="Creacion de usuario en la base de datos", icon_url=self.bot.user.display_avatar.url)
+        embed.description = f"Al aceptar, le estás dando permiso a {self.bot.user.mention} para que guarde cierta informacion tuya.\n"
+        embed.add_field(name="¿Que informacion se guardará?", value="Si aceptas, se te creará un usuario en la base de datos y guardaré tu username y tu discord id", inline=False)
+        embed.add_field(name="¿Que se puede hacer con esta informacion?", value="Realmente no mucho, solo se hace para acceder a estos datos de manera rapida y a futuro poder configurar tu experiencia con el bot.", inline=False)
+        embed.set_footer(text="Si quieres eliminar tu informacion de la base de datos usa el comando /deleteuser")
+        return await interaction.response.send_message(embed=embed, view=UserCreateView(interaction.user), ephemeral=True)
+    
+    @app_commands.command(name="deleteuser", description="Elimina tu usuario de la base de datos.")
+    async def delete_user(self, interaction: discord.Interaction):
+        delete_user_by_id(interaction.user.id)
+        await interaction.response.send_message("Tu usuario ha sido eliminado de la base de datos. Si quieres volver a crear tu usuario, usa el comando /createuser", ephemeral=True)
+    
     @app_commands.command(name="event", description="Crea un evento de reunion.")
     @app_commands.describe(title="Titulo del evento",
                            date="Fecha del evento. (Formato DD-MM-YYYY)", time="Hora del evento. (Formato HH:MM y de 24 Horas)",
@@ -100,7 +101,19 @@ class CommandsBot(discord.ext.commands.Cog):
     async def idea(self, interaction: discord.Interaction, idea: str):
         create_idea(idea, interaction.guild.name, interaction.user.name)
         await interaction.response.send_message("Tu idea ha sido enviada al desarrollador. Gracias por tu sugerencia!", ephemeral=True, delete_after=3)
-
+    
+    
+    # @app_commands.command(description="Es un secreto 🤫")
+    # async def init_users(self, interaction: discord.Interaction):
+    #     """ Inicializa los usuarios en la base de datos """
+    #     if not interaction.user.resolved_permissions.administrator:
+    #         return await interaction.response.send_message('NO tienes permisos para ejecutar este comando', ephemeral=True)
+        
+    #     members = [member for member in interaction.guild.members if not member.bot]
+    #     for user in members:
+    #         create_user_in_db(user)
+    #     return await interaction.response.send_message('Parece que ya.', ephemeral=True)
+    
     # @app_commands.command(name="valoinfo", description="Busca tus estadísticas de valorant 😊")
     # @app_commands.describe(username="Tu Riot ID, incluye el tagline, o sea el #", game="Elige un tipo de juego para buscar tus estadísticas")
     # async def valoinfo(self, interaction: discord.Interaction, username: str, game: Literal["competitive", "all", "unrated"]):

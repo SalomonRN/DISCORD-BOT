@@ -1,7 +1,7 @@
 import discord
 from utils.errors import UserNotFound
-from utils.mongo_utils import update_user_notify_list
-
+from utils.mongo_utils import create_user_in_db, update_user_notify_list
+import pymongo.errors
 # Modal -> Un formulario
 # https://www.youtube.com/watch?v=PRC4Ev5TJwc
 class Questionnaire(discord.ui.Modal, title='Lo que sale arriba'):
@@ -13,7 +13,6 @@ class Questionnaire(discord.ui.Modal, title='Lo que sale arriba'):
         
     async def on_error(self, interaction: discord.Interaction, error):
         print("ERROR-----", error)
-
 
 class UserNotifyView(discord.ui.View):
     
@@ -47,8 +46,15 @@ class UserCreateView(discord.ui.View):
     
     @discord.ui.button(label='Aceptar', style=discord.ButtonStyle.green)
     async def accept(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_modal(Questionnaire())
-    
+        try:
+            user = create_user_in_db(interaction.user)
+            if not user:
+                # LOG ERROR
+                return await interaction.response.send_message("Uy, algo salió mal al crear el usuario. Contacta al administrador.", ephemeral=True)
+            return await interaction.response.send_message(f"Tu usuario fue creado correctamente en la base de datos.", ephemeral=True)
+        except pymongo.errors.DuplicateKeyError as error:
+            return await interaction.response.send_message("El usuario ya existe en la base de datos.", ephemeral=True)
+
     @discord.ui.button(label='Rechazar', style=discord.ButtonStyle.red)
     async def deny(self, interaction: discord.Interaction, button: discord.ui.Button):
         return await interaction.response.send_message(f"Ningún cambio!", ephemeral=True)
