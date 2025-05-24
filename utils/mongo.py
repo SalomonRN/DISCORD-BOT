@@ -32,19 +32,18 @@ def get_all(database, collection):
         print(element)
 
 def create_user(querry: dict):
-    try:
-        DATABASE.get_collection("users").insert_one(querry)
-    except pymongo.errors.DuplicateKeyError as error:
-        pass
+    return DATABASE.get_collection("users").insert_one(querry)
 
 def get_user_by_id(id: int) -> dict:
     return DATABASE.get_collection("users").find_one({"discord_id": id})
-
 
 def update_user_by_id(id: int, update_querry: dict) -> dict:
     return DATABASE.get_collection("users").find_one_and_update(
         {"discord_id": id}, update_querry, return_document=pymongo.ReturnDocument.AFTER
     )
+
+def delete_user(id: int):
+    return DATABASE.get_collection("users").find_one_and_delete({"discord_id": id})
 
 # SERVER
 def create_server(querry: dict):
@@ -52,7 +51,6 @@ def create_server(querry: dict):
 
 def get_server(id: int) -> dict:
     return DATABASE.get_collection("servers").find_one({"id": id})
-
 
 def update_server(id: int, querry: dict):
     DATABASE.get_collection("servers").find_one_and_update(

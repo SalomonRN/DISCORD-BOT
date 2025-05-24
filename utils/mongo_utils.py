@@ -22,7 +22,7 @@ def create_user_in_db(user: discord.Member):
         "active": True,
         "notify_to": []
     }
-    mongo.create_user(querry)
+    return mongo.create_user(querry)
 
 def user_exist(id: int) -> bool:
     return True if mongo.get_user_by_id(id) else False
@@ -56,6 +56,9 @@ def change_active_status_user(id: int) -> str:
     update_querry = {"$set": {"notify": not user.get("notify")}}
     user = mongo.update_user_by_id(id, update_querry)
     return user.get("notify")
+
+def delete_user_by_id(user_id: int):
+    mongo.delete_user(user_id)
 
 def get_server(id: int) -> dict:
     return mongo.get_server(id)
