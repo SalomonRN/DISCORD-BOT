@@ -14,7 +14,7 @@ class EventTask(commands.Cog):
    
     @tasks.loop(seconds=60.0)
     async def event(self):
-    
+        # MEJOR USAR FILTRO, ASI NO RECORREMOS TODOS LOS EVENTOS
         events: list[dict] = await get_evetns()
 
         for event in events:

@@ -13,15 +13,16 @@ class LogCommands(discord.ext.commands.Cog):
         create_log_bug(description, interaction.guild.name, interaction.user.name, code, None)
         return await interaction.response.send_message("Gracias por reportar el bug, lo revisaré en cuanto pueda 😊", ephemeral=True)
 
-    @app_commands.command(name="configure_bot", description="Configura el bot en el servidor.")
+    @app_commands.command(name="configure_bot", description="Configura el bot en el servidor. (Aún no implementado)")
     async def configure_bot(self, interaction: discord.Interaction):
+        return await interaction.response.send_message("Aún no la he hecho, y no quiero quitarla :)", ephemeral=True)
         if not interaction.user.guild_permissions.administrator:
             return await interaction.response.send_message("No tienes permisos para ejecutar este comando.",
                                                            ephemeral=True, delete_after=4)
         
         # LO HARÉ CON MODALES
         
-        await interaction.response.send_message("Configurando el bot en el servidor...", ephemeral=True)
+        return await interaction.response.send_message("Configurando el bot en el servidor...", ephemeral=True)
 
     @staticmethod
     async def send_log_error(server: discord.Guild, message: str):

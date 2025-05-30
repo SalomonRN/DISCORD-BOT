@@ -16,6 +16,10 @@ class CommandsBot(discord.ext.commands.Cog):
     def __init__(self, bot: discord.ext.commands.Bot):
         self.bot: discord.ext.commands.Bot = bot
 
+    @app_commands.command(name="prefix", description="Te dice que prefijo se usa en el servidor")
+    async def prefix(self, interaction: discord.Interaction):
+        return await interaction.response.send_message(f"Este servidor usa el prefijo: {self.bot.command_prefix}" ,ephemeral=True)
+    
     @app_commands.command(name="ping", description="Responde con un pong")
     async def ping(self, interaction: discord.Interaction):
         embed = Embed(
@@ -23,7 +27,7 @@ class CommandsBot(discord.ext.commands.Cog):
             title="🏓Pong!",
             description=f"**ms {round(self.bot.latency, 1)}**"
         )
-        await interaction.response.send_message(embed=embed)
+        return await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="advice", description="Te da un consejo totalmente random. La traducción es hecha por google translate, y no es exacta.")
     async def advice(self, interaction: discord.Interaction):
@@ -102,6 +106,77 @@ class CommandsBot(discord.ext.commands.Cog):
         create_idea(idea, interaction.guild.name, interaction.user.name)
         await interaction.response.send_message("Tu idea ha sido enviada al desarrollador. Gracias por tu sugerencia!", ephemeral=True, delete_after=3)
     
+    @app_commands.command(description="Envía un mensaje al voice que tú quieras sin la necesidad de entrar 😉")
+    @app_commands.describe(message="Mensaje que quieres que diga el bot.", voice="Voice al que va a entrar el bot.")
+    async def message(self, interaction: discord.Interaction, message: str, voice: discord.VoiceChannel):
+        await interaction.response.defer(ephemeral=True)
+        await interaction.followup.send("Este comando es mas propenso a fallar, si el bot no te responde con un mensaje de exito por favor usa >message")
+        if "<@" in message:
+            print("⚠️ Mensaje con mención detectado")
+
+        file_name = create_audio(message)
+        if not os.path.exists(file_name):
+            return await interaction.followup.send("⚠️ Ocurrió un error al generar el audio. Intenta de nuevo sin emojis o caracteres especiales.", ephemeral=True)
+        
+        try:
+            # Verifica si el bot ya está en un canal de voz
+            if interaction.guild.voice_client:
+                # Si el bot ya está en un canal de voz, lo desconecta
+                await interaction.guild.voice_client.disconnect(force=True)
+            
+            # 
+            bot_vc = interaction.guild.voice_client
+            
+            if not bot_vc:
+                # Cargar la librería Opus si no está cargada
+                if not discord.opus.is_loaded():
+                    print("🔌 Cargando Opus...")
+                    discord.opus.load_opus("./bin/libopus.dll") 
+                try:
+                    print("🔌 Conectando al canal de voz...")
+                    bot_vc = await voice.connect()
+                    print("🔌 Conectado al canal de voz!!!!!!!!!!!")
+                except Exception as error:
+                    print("❌ ERROR*---*-*-*--:", error, type(error))
+                
+                print("🔌 Conectando al canal...")
+                print("🤖 Bot VC:", bot_vc)
+            # Verifica si el bot ya está en el canal de voz
+            elif bot_vc.channel != voice:
+                print("🔁 Moviendo a otro canal...")
+                # Si el bot ya está en otro canal de voz, lo mueve al nuevo canal
+                await bot_vc.move_to(voice)
+
+            # Detener si está reproduciendo
+            if bot_vc.is_playing():
+                bot_vc.stop()
+
+            # Reproducir el audio
+            audio = discord.FFmpegPCMAudio(file_name)
+            bot_vc.play(audio, after=lambda e: print("✅ Reproducción terminada." if not e else f"❌ Error al reproducir: {e}"))
+
+            print("🎶 Reproduciendo...")
+            await interaction.followup.send(f"✅ Reproduciendo mensaje en **{voice.name}**.")
+
+            # Esperar a que termine
+            while bot_vc.is_playing():
+                await asyncio.sleep(1)
+
+            await bot_vc.disconnect()
+            os.remove(file_name)
+
+        except discord.ClientException as e:
+            print("⚠️ ClientException:", e)
+            return await interaction.followup.send("⚠️ Error de cliente Discord. Código: 1", ephemeral=True)
+        except asyncio.TimeoutError:
+            print("⚠️ Timeout al conectar.")
+            return await interaction.followup.send("⚠️ Timeout al conectar. Código: 2", ephemeral=True)
+        except discord.opus.OpusNotLoaded:
+            print("⚠️ Opus no cargado.")
+            return await interaction.followup.send("⚠️ La librería Opus no está cargada. Código: 3", ephemeral=True)
+        except Exception as error:
+            print("❌ ERROR:", error)
+            return await interaction.followup.send("⚠️ Error inesperado. Código: 0000000", ephemeral=True)
     
     # @app_commands.command(description="Es un secreto 🤫")
     # async def init_users(self, interaction: discord.Interaction):
@@ -163,78 +238,7 @@ class CommandsBot(discord.ext.commands.Cog):
     #     print(interaction.user.resolved_permissions.manage_roles)
     #     await interaction.guild.create_role(name=name)
     #     await interaction.response.send_message("Rol creado")       
-    
-    # @app_commands.command(description="Envía un mensaje al voice que tú quieras sin la necesidad de entrar 😉")
-    # @app_commands.describe(message="Mensaje que quieres que diga el bot.", voice="Voice al que va a entrar el bot.")
-    # async def message(self, interaction: discord.Interaction, message: str, voice: discord.VoiceChannel):
-    #     await interaction.response.defer(ephemeral=True)
-    #     print("🔊 Preparando mensaje de voz...")
-
-    #     if "<@" in message:
-    #         print("⚠️ Mensaje con mención detectado")
-
-    #     # file_name = create_audio(message)
-    #     file_name = "voz.mp3"
-    #     if not file_name:
-    #         return await interaction.followup.send( "⚠️ Ocurrió un error al generar el audio. Intenta de nuevo sin emojis o caracteres especiales.", ephemeral=True)
-
-    #     try:
-    #         if interaction.guild.voice_client:
-    #             await interaction.guild.voice_client.disconnect(force=True)
-            
-    #         bot_vc = interaction.guild.voice_client
-            
-    #         if not bot_vc:
-    #             discord.opus.load_opus("./bin/libopus.dll") 
-    #             try:
-    #                 print("🔌 Conectando al canal de voz...")
-    #                 bot_vc = await voice.connect()
-    #                 print("🔌 Conectado al canal de voz!!!!!!!!!!!")
-    #             except Exception as error:
-    #                 print("❌ ERROR*---*-*-*--:", error)
-
-                
-    #             print("🔌 Conectando al canal...")
-    #             print("🤖 Bot VC:", bot_vc)
-    #             print("🎙 Voice Channel:", voice.name, voice.id)
-    #             print("🎛 Voice Permissions:", voice.permissions_for(interaction.guild.me))
-    #             print("Opus loaded:", discord.opus.is_loaded())
-    #         elif bot_vc.channel != voice:
-    #             print("🔁 Moviendo a otro canal...")
-    #             await bot_vc.move_to(voice)
-
-    #         # Detener si está reproduciendo
-    #         if bot_vc.is_playing():
-    #             bot_vc.stop()
-
-    #         # Reproducir el audio
-    #         audio = discord.FFmpegPCMAudio(file_name)
-    #         bot_vc.play(audio, after=lambda e: print("✅ Reproducción terminada." if not e else f"❌ Error al reproducir: {e}"))
-
-    #         print("🎶 Reproduciendo...")
-    #         await interaction.followup.send(f"✅ Reproduciendo mensaje en **{voice.name}**.")
-
-    #         # Esperar a que termine
-    #         while bot_vc.is_playing():
-    #             await asyncio.sleep(1)
-
-    #         await bot_vc.disconnect()
-    #         os.remove(file_name)
-    #         print("🧹 Limpieza completada")
-
-    #     except discord.ClientException as e:
-    #         print("⚠️ ClientException:", e)
-    #         return await interaction.followup.send("⚠️ Error de cliente Discord. Código: 1", ephemeral=True)
-    #     except asyncio.TimeoutError:
-    #         print("⚠️ Timeout al conectar.")
-    #         return await interaction.followup.send("⚠️ Timeout al conectar. Código: 2", ephemeral=True)
-    #     except discord.opus.OpusNotLoaded:
-    #         print("⚠️ Opus no cargado.")
-    #         return await interaction.followup.send("⚠️ La librería Opus no está cargada. Código: 3", ephemeral=True)
-    #     except Exception as error:
-    #         print("❌ ERROR:", error)
-    #         return await interaction.followup.send("⚠️ Error inesperado. Código: 0000000", ephemeral=True)
-    # 
+        
     # @app_commands.command(name="change_notify", description="Cambia el estado de las notificaciones cuando juegas")
     # async def change_notify(self, interaction: discord.Interaction):
     #     await interaction.response.send_message("Este comando no está aún bien hecho, así que puede dar errores, tales como no hacer nada o explotar el Sol, tenlo presente.", ephemeral=True, delete_after=5)

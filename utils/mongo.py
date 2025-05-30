@@ -5,6 +5,8 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import sys
 from os import getenv
+from dotenv import load_dotenv
+load_dotenv()
 
 URI = getenv("URI_MONGO")
 CLIENT = None

@@ -12,8 +12,10 @@ async def get_advice() -> str:
     return translate.text
 
 def create_audio(message: str) -> str:
-    tts = gTTS(message, lang='es')  # Puedes cambiar el idioma si lo deseas (ej. 'en' para inglés)
+    tts = gTTS(message, lang='es')
     filename = "audio.mp3"
     tts.save(filename)
     return filename
-    
+
+if __name__ == "__main__":
+    create_audio("Hola, este es un mensaje de prueba.")
