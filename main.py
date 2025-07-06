@@ -16,7 +16,7 @@ from cogs.events.server_events import ServerEvents
 from utils.mongo_utils import server_exist, create_server_in_db, change_active_status, update_server_info, delete_server_data
 from discord import app_commands
 from dotenv import load_dotenv
-from utils.utils import create_audio
+from utils.utils import create_audio, load_libopus
 load_dotenv()
 
 TOKEN = getenv("DISCORD_TOKEN")
@@ -42,11 +42,9 @@ async def on_ready():
     print(f"Se sincronizaron {len(synced)} comandos de barra!")
     print(f'We have logged in as {bot.user}')
     await bot.add_cog(EventTask(bot))
-
     await MAIN_GUILD.get_channel(802609235912949810).send("Bot funcionando :)")
 
-@bot.command()
-async def message(ctx: discord.ext.commands.Context):
+async def say(ctx: discord.ext.commands.Context):
     if len(ctx.message.content.split(" ")) == 1:
         embed = discord.Embed(colour=0x043548)
         embed.title ="📢 Cómo usar el comando message"
@@ -55,6 +53,12 @@ async def message(ctx: discord.ext.commands.Context):
     try:
         vc = None
         flag = False
+        
+        if not load_libopus():
+            # Log de error si no se pudo cargar la librería Opus
+            print("Error al cargar la librería Opus. Asegúrate de tenerla instalada.")
+            return await ctx.send("⚠️ Error con Opus. Código: 4", ephemeral=True)
+        
         # Si esto se cumple, significa que el mensaje tiene un usuario mencionado, por lo que se enviará el mensaje a ese usuario
         if re.match(r"<@\d+[0-9]>", ctx.message.content.split(" ", 2)[1]):
             if not ctx.message.mentions[0].voice:
@@ -95,6 +99,14 @@ async def message(ctx: discord.ext.commands.Context):
     except Exception as e:
         print(f"Error al conectar al canal de voz: {e}")
         return await ctx.send("Algo salió mal...", ephemeral=True)
+
+@bot.command()
+async def msg(ctx: discord.ext.commands.Context):
+    return await say(ctx)
+
+@bot.command()
+async def message(ctx: discord.ext.commands.Context):
+    return await say(ctx)
 
 @bot.command()
 async def change(ctx: discord.ext.commands.Context):
@@ -148,7 +160,7 @@ async def main():
     # await bot.add_cog(ServerEvents(bot))
     await bot.add_cog(CommandsBot(bot))
     await bot.add_cog(NotifyCommands(bot))
-    # await bot.add_cog(LogCommands(bot))
+    await bot.add_cog(LogCommands(bot))
     await bot.start(TOKEN)
 
 # await bot.run(TOKEN)

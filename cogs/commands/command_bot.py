@@ -8,9 +8,10 @@ import discord.ext
 import discord.ext.commands
 from cogs.views import UserCreateView
 from utils.errors import UserNotFound
-from utils.mongo_utils import create_idea, create_user_in_db, change_active_status_user, create_event, create_log_bug, delete_user_by_id, update_user_notify_list
-from utils.utils import get_advice, create_audio
+from utils.mongo_utils import create_idea, create_event, delete_user_by_id
+from utils.utils import get_advice, create_audio, load_libopus
 from utils.web_scrapping.valo_scrapping import search
+import re
 
 class CommandsBot(discord.ext.commands.Cog):
     def __init__(self, bot: discord.ext.commands.Bot):
@@ -113,7 +114,11 @@ class CommandsBot(discord.ext.commands.Cog):
         await interaction.followup.send("Este comando es mas propenso a fallar, si el bot no te responde con un mensaje de exito por favor usa >message")
         if "<@" in message:
             print("⚠️ Mensaje con mención detectado")
-
+            list_users = re.findall(r"<@\d+[0-9]>", message) # Encuentra todas las menciones de usuarios en el mensaje
+            
+            for user in list_users:
+                message = message.replace(user, self.bot.get_user(int(user[2:-1])).name)
+               
         file_name = create_audio(message)
         if not os.path.exists(file_name):
             return await interaction.followup.send("⚠️ Ocurrió un error al generar el audio. Intenta de nuevo sin emojis o caracteres especiales.", ephemeral=True)
@@ -128,10 +133,9 @@ class CommandsBot(discord.ext.commands.Cog):
             bot_vc = interaction.guild.voice_client
             
             if not bot_vc:
-                # Cargar la librería Opus si no está cargada
-                if not discord.opus.is_loaded():
-                    print("🔌 Cargando Opus...")
-                    discord.opus.load_opus("./bin/libopus.dll") 
+                if not load_libopus():
+                    return await interaction.followup.send("⚠️ Error al cargar la librería Opus. Código: 4", ephemeral=True)
+                                
                 try:
                     print("🔌 Conectando al canal de voz...")
                     bot_vc = await voice.connect()

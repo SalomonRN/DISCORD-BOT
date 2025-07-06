@@ -7,15 +7,18 @@ from discord import Colour, Embed, app_commands
 import discord
 import discord.ui as ui
 from utils.errors import UserNotFound
-from utils.mongo_utils import update_user_notify_list
+from utils.mongo_utils import update_user_notify_list, get_user
 
 class NotifyCommands(discord.ext.commands.Cog):
     def __init__(self, bot: discord.ext.commands.Bot):
         self.bot: discord.ext.commands.Bot = bot
 
-    @app_commands.command(name="accept", description="Permite que el bot le notifique al usuario cuando estés en un voice.")
+    @app_commands.command(name="allow_notify", description="Permite que el bot le notifique al usuario cuando estés en un voice.")
     @app_commands.describe(user="Usuario al cual le permites saber si te conectaste a un voice.")
-    async def accept(self, interaction: discord.Interaction, user: discord.Member):
+    async def allow_notify(self, interaction: discord.Interaction, user: discord.Member):
+        user = get_user(user.id)
+        if not user:
+            return await interaction.response.send_message("Tú usuario no existe en la base de datos, para que el bot pueda saber ")
         if user.bot:
             return await interaction.response.send_message("No se puede agregar un bot.")
         if user.id == interaction.user.id:
