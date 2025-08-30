@@ -4,7 +4,7 @@ import discord
 import discord.ext
 import discord.ext.commands
 from discord.ext import commands
-from utils.utils import create_audio, load_libopus
+from utils.utils import create_audio, load_libopus, ffmpeg_path
 
 
 class SpeakCog(discord.ext.commands.Cog):
@@ -63,7 +63,7 @@ class SpeakCog(discord.ext.commands.Cog):
             if not os.path.exists(file_name):
                 return await ctx.send("No pude crear el audio, revisa el mensaje que enviaste.", ephemeral=True)
             
-            bot_vc.play(discord.FFmpegPCMAudio(file_name))
+            bot_vc.play(discord.FFmpegPCMAudio(file_name, executable=ffmpeg_path()))
         except Exception as e:
             print(f"Error al conectar al canal de voz: {e}")
             return await ctx.send("Algo salió mal...", ephemeral=True)

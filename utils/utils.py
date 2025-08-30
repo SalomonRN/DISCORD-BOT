@@ -22,12 +22,18 @@ def create_audio(message: str) -> str:
 
 def load_libopus() -> bool:
     if sys.platform.startswith('linux'):
-        discord.opus.load_opus(Path(__file__).parent.parent.joinpath("./bin/linux/"))
+        discord.opus.load_opus(Path(__file__).parent.parent.joinpath("./bin/linux/libopus.so"))
         return discord.opus.is_loaded()
         
     elif sys.platform.startswith('win'):
         discord.opus.load_opus(Path(__file__).parent.parent.joinpath("./bin/win/libopus.dll"))
         return discord.opus.is_loaded()
+def ffmpeg_path():
+    if sys.platform.startswith('linux'):
+        return "./bin/linux/ffmpeg"
+        
+    elif sys.platform.startswith('win'):
+        return "./bin/win/ffmpeg.exe"
 
 if __name__ == "__main__":
     pass

@@ -12,7 +12,7 @@ import os
 from dotenv import load_dotenv
 import yt_dlp
 import queue
-
+from utils.utils import ffmpeg_path
 load_dotenv()
 
 
@@ -109,9 +109,11 @@ class YouTubeCog(discord.ext.commands.Cog):
         if ctx.voice_client.is_playing():
             await self.add_song(url)
             return await ctx.send("Cancion agregada!!")
-
-        source = discord.FFmpegPCMAudio(await self.get_url(url), **self.FFMPEG_OPTIONS)
+        print("PRIMERO--------------")
+        source = discord.FFmpegPCMAudio(await self.get_url(url), executable=ffmpeg_path(), **self.FFMPEG_OPTIONS)
+        print("SEGUNDO--------------")
         volume_source = discord.PCMVolumeTransformer(source, volume=self.GLOBAL_VOLUME)
+        print("TERCERO--------------")
         self.VOLUME_CLIENT = volume_source
 
         # https://stackoverflow.com/questions/75493436/why-is-the-ffmpeg-process-in-discordpy-terminating-without-playing-anything
@@ -120,6 +122,7 @@ class YouTubeCog(discord.ext.commands.Cog):
             volume_source,
             after=lambda ex: asyncio.run_coroutine_threadsafe(self.play_next(ctx), self.bot.loop),
         )
+        print("CUARTO--------------")
         return
 
     # De lo contrario colocamos la cancion en la cola
