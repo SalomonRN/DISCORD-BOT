@@ -1,13 +1,12 @@
-import discord.ext
-import discord.ext.commands
-from cogs.views import UserNotifyView
-from utils.errors import UserNotFound
-from utils.mongo_utils import update_user_notify_list
-from discord import Colour, Embed, app_commands
 import discord
 import discord.ui as ui
-from utils.errors import UserNotFound
-from utils.mongo_utils import update_user_notify_list, get_user
+import discord.ext
+import discord.ext.commands
+from discord import Colour, Embed, app_commands
+from cogs.views import UserNotifyView
+from core.db.users.errors import UserNotFound
+from core.db.users.errors import UserNotFound
+from core.db.users.mongo import update_user_notify_list, get_user
 
 class NotifyCommands(discord.ext.commands.Cog):
     def __init__(self, bot: discord.ext.commands.Bot):

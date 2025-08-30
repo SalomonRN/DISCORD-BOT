@@ -7,10 +7,10 @@ from discord.embeds import Embed
 import discord.ext
 import discord.ext.commands
 from cogs.views import UserCreateView
-from utils.errors import UserNotFound
-from utils.mongo_utils import create_idea, create_event, delete_user_by_id
+from core.db.users.mongo import delete_user_by_id
+from core.db.ideas.mongo import create_idea
+from core.db.events.mongo import create_event
 from utils.utils import get_advice, create_audio, load_libopus
-from utils.web_scrapping.valo_scrapping import search
 import re
 
 class CommandsBot(discord.ext.commands.Cog):

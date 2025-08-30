@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from discord.ext import tasks, commands
 from discord import Embed, Colour, Member
-from utils.mongo_utils import get_evetns, delete_event
+from core.db.events.mongo import get_evetns, delete_event
 
 class EventTask(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -57,5 +57,14 @@ class EventTask(commands.Cog):
             await user.create_dm()
             await user.dm_channel.send(message, tts=True)    
         except Exception as error:
-            print("ERROE MESSAGE")
+            print("ERROR MESSAGE type", type(error))
             print(error)
+
+class ServerTask(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+        self.change_server.start()
+        
+    @tasks.loop(seconds=60.0)
+    async def change_server(self):
+            pass

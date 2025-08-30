@@ -1,7 +1,7 @@
 import discord
-from discord import app_commands
 import discord.ext.commands
-from utils.mongo_utils import create_log_bug
+from discord import app_commands
+from core.db.logs.mongo import create_log_bug
 
 class LogCommands(discord.ext.commands.Cog):
     def __init__(self, bot: discord.Client):
@@ -10,7 +10,7 @@ class LogCommands(discord.ext.commands.Cog):
     @app_commands.command(name="error", description="Reporta un bug o error que haya ocurrido.")
     @app_commands.describe(description="Descripcion de como sucedió el error. Que comando usaste y que opciones colocaste.", code="Código del error que el bot arrojó.")
     async def error(self, interaction: discord.Interaction, description: str, code: str):
-        create_log_bug(description, interaction.guild.name, interaction.user.name, code, None)
+        await create_log_bug(description, interaction.guild.name, interaction.user.name, code, None)
         return await interaction.response.send_message("Gracias por reportar el bug, lo revisaré en cuanto pueda 😊", ephemeral=True)
 
     @app_commands.command(name="configure_bot", description="Configura el bot en el servidor. (Aún no implementado)")

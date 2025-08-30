@@ -1,6 +1,6 @@
 import discord
-from utils.errors import UserNotFound
-from utils.mongo_utils import create_user_in_db, update_user_notify_list
+from core.db.users.errors import UserNotFound
+from core.db.users.mongo import create_user_in_db, update_user_notify_list
 import pymongo.errors
 # Modal -> Un formulario
 # https://www.youtube.com/watch?v=PRC4Ev5TJwc
