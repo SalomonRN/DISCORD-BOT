@@ -14,6 +14,7 @@ async def get_advice() -> str:
     translate = await translator.translate(text["advice"], src="en", dest="es")
     return translate.text
 
+# TODO: Arregla mejor esto
 def create_audio(message: str) -> str:
     tts = gTTS(message, lang='es')
     filename = "audio.mp3"
@@ -22,7 +23,7 @@ def create_audio(message: str) -> str:
 
 def load_libopus() -> bool:
     if sys.platform.startswith('linux'):
-        discord.opus.load_opus(Path(__file__).parent.parent.joinpath("./bin/linux/"))
+        discord.opus.load_opus(Path(__file__).parent.parent.joinpath("./bin/linux/libopus.so"))
         return discord.opus.is_loaded()
         
     elif sys.platform.startswith('win'):

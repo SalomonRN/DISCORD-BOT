@@ -26,14 +26,23 @@ async def on_connect():
 
 @bot.event
 async def on_ready():
+    print("Iniciando configuracion")
     MAIN_GUILD = bot.get_guild(int(MY_SERVER_ID)) # El id de mi servidor
-    # mongo.init_connection()
-    await setup()
     
+    # await test_db_connection()
+    # print("Base de datos conectada")
+    
+    print("Inicializando cogs")
+    await setup_cogs()
+    print("Cogs inicializados")
+    
+    print("Sincronizando comandos")
     synced = await bot.tree.sync()  # Sincroniza los comandos de barra
     
+    print("Comandos sincronizados")
     print(f"Se sincronizaron {len(synced)} comandos de barra!")
     print(f'We have logged in as {bot.user}')
+    
     await MAIN_GUILD.get_channel(802609235912949810).send("Bot funcionando :)")
 
 
@@ -59,13 +68,13 @@ async def change(ctx: discord.ext.commands.Context):
                 await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=activity))
             case _:
                 await ctx.send("Algo salió mal...")
-        
 
-        
-        
-async def setup():
+async def test_db_connection():
+    
     await client.ping_db() # Test connection
-     
+
+async def setup_cogs():
+         
     await bot.add_cog(CommandsBot(bot))
     await bot.add_cog(YouTubeCog(bot))
     await bot.add_cog(NotifyCommands(bot))

@@ -33,7 +33,7 @@ class ClientMongo(AsyncMongoClient):
     async def ping_db(self):
         try:
             await self.admin.command("ping")
-            print("Conexión exitosa")
+            print("Conexión exitosa a MongoDB")
         except OperationFailure:
             sys.exit("Conexión no establecida")
 
