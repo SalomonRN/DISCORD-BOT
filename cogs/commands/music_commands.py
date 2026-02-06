@@ -190,9 +190,9 @@ class YouTubeCog(discord.ext.commands.Cog):
         if not url.startswith(("https://www.youtube.com", "https://youtu.be")):
             return False, "El dominio de la url no es valido, asegurate de que sea *https://www.youtube.com/* o *https://youtu.be/*"
         
-        if "https://youtu.be/" in url:
+        if url.startswith("https://youtu.be/"):
             return True, url.split("?")[0]
-        if "https://www.youtube.com" in url:
+        if url.startswith("https://www.youtube.com"):
             print("------------------------------------")
             return True, url.split("&")[0]
         
