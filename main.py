@@ -2,7 +2,7 @@ import asyncio
 import discord
 import discord.ext
 import discord.ext.commands
-from cogs.commands import CommandsBot, NotifyCommands, YouTubeCog, SpeakCog, LogCommands
+from cogs.commands import CommandsBot, NotifyCommands, YouTubeCog, SpeakCog, LogCommands, AnnoyCog
 from tasks.event_task import EventTask
 from discord.ext import commands
 from core.db.servers.mongo import server_exist, create_server_in_db, update_server_info, change_server_status
@@ -80,7 +80,8 @@ async def setup_cogs():
     await bot.add_cog(NotifyCommands(bot))
     await bot.add_cog(LogCommands(bot))
     await bot.add_cog(EventTask(bot))
-    await bot.add_cog(SpeakCog(bot))  
+    await bot.add_cog(SpeakCog(bot))
+    await bot.add_cog(AnnoyCog(bot))
 
 async def main():
     await bot.start(TOKEN)

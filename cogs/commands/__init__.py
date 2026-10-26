@@ -3,3 +3,4 @@ from .notify_commands import NotifyCommands
 from .logs_commands import LogCommands
 from .speak_commands import SpeakCog
 from .music_commands import YouTubeCog
+from .annoy_commands import AnnoyCog

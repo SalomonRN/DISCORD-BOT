@@ -15,9 +15,8 @@ async def get_advice() -> str:
     return translate.text
 
 # TODO: Arregla mejor esto
-def create_audio(message: str) -> str:
+def create_audio(message: str, filename: str = "audio.mp3") -> str:
     tts = gTTS(message, lang='es')
-    filename = "audio.mp3"
     tts.save(filename)
     return filename
 
