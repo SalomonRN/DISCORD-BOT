@@ -119,7 +119,7 @@ class CommandsBot(discord.ext.commands.Cog):
             for user in list_users:
                 message = message.replace(user, self.bot.get_user(int(user[2:-1])).name)
                
-        file_name = create_audio(message)
+        file_name = await asyncio.to_thread(create_audio, message)
         if not os.path.exists(file_name):
             return await interaction.followup.send("⚠️ Ocurrió un error al generar el audio. Intenta de nuevo sin emojis o caracteres especiales.", ephemeral=True)
         
