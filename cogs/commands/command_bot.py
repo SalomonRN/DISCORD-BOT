@@ -123,51 +123,55 @@ class CommandsBot(discord.ext.commands.Cog):
         if not os.path.exists(file_name):
             return await interaction.followup.send("⚠️ Ocurrió un error al generar el audio. Intenta de nuevo sin emojis o caracteres especiales.", ephemeral=True)
         
+        if not load_libopus():
+            return await interaction.followup.send("⚠️ Error al cargar la librería Opus. Código: 4", ephemeral=True)
+
+        # Solo desconectamos al final si fuimos nosotros los que conectamos el bot.
+        connected_by_us = False
+
         try:
-            # Verifica si el bot ya está en un canal de voz
-            if interaction.guild.voice_client:
-                # Si el bot ya está en un canal de voz, lo desconecta
-                await interaction.guild.voice_client.disconnect(force=True)
-            
-            # 
+            # Reutilizamos la conexión existente: desconectar y reconectar provoca que el
+            # bot salga y vuelva a entrar al voice, y además el connect() se adelanta al
+            # voice state update del gateway (ClientException / timeout).
             bot_vc = interaction.guild.voice_client
-            
+
             if not bot_vc:
-                if not load_libopus():
-                    return await interaction.followup.send("⚠️ Error al cargar la librería Opus. Código: 4", ephemeral=True)
-                                
-                try:
-                    print("🔌 Conectando al canal de voz...")
-                    bot_vc = await voice.connect()
-                    print("🔌 Conectado al canal de voz!!!!!!!!!!!")
-                except Exception as error:
-                    print("❌ ERROR*---*-*-*--:", error, type(error))
-                
-                print("🔌 Conectando al canal...")
-                print("🤖 Bot VC:", bot_vc)
-            # Verifica si el bot ya está en el canal de voz
+                print("🔌 Conectando al canal de voz...")
+                bot_vc = await voice.connect(timeout=30.0, reconnect=True)
+                connected_by_us = True
+                print("🔌 Conectado al canal de voz!")
             elif bot_vc.channel != voice:
                 print("🔁 Moviendo a otro canal...")
-                # Si el bot ya está en otro canal de voz, lo mueve al nuevo canal
-                await bot_vc.move_to(voice)
+                # move_to espera a que el gateway confirme el cambio de canal
+                await bot_vc.move_to(voice, timeout=30.0)
 
             # Detener si está reproduciendo
             if bot_vc.is_playing():
                 bot_vc.stop()
 
-            # Reproducir el audio
+            # Reproducir el audio. El callback 'after' corre en otro hilo, así que
+            # avisamos al loop de forma thread-safe en vez de hacer polling.
+            finished = asyncio.Event()
+            loop = self.bot.loop
+
+            def after_playing(error):
+                if error:
+                    print(f"❌ Error al reproducir: {error}")
+                else:
+                    print("✅ Reproducción terminada.")
+                loop.call_soon_threadsafe(finished.set)
+
             audio = discord.FFmpegPCMAudio(file_name)
-            bot_vc.play(audio, after=lambda e: print("✅ Reproducción terminada." if not e else f"❌ Error al reproducir: {e}"))
+            bot_vc.play(audio, after=after_playing)
 
             print("🎶 Reproduciendo...")
             await interaction.followup.send(f"✅ Reproduciendo mensaje en **{voice.name}**.")
 
             # Esperar a que termine
-            while bot_vc.is_playing():
-                await asyncio.sleep(1)
+            await finished.wait()
 
-            await bot_vc.disconnect()
-            os.remove(file_name)
+            if connected_by_us and bot_vc.is_connected():
+                await bot_vc.disconnect()
 
         except discord.ClientException as e:
             print("⚠️ ClientException:", e)
@@ -181,6 +185,9 @@ class CommandsBot(discord.ext.commands.Cog):
         except Exception as error:
             print("❌ ERROR:", error)
             return await interaction.followup.send("⚠️ Error inesperado. Código: 0000000", ephemeral=True)
+        finally:
+            if os.path.exists(file_name):
+                os.remove(file_name)
     
     # @app_commands.command(description="Es un secreto 🤫")
     # async def init_users(self, interaction: discord.Interaction):

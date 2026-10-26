@@ -2,10 +2,6 @@ import sys
 from pymongo import AsyncMongoClient
 from pymongo.errors import OperationFailure
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
-
 
 # https://pymongo.readthedocs.io/en/stable/api/pymongo/asynchronous/
 class ClientMongo(AsyncMongoClient):
@@ -25,7 +21,8 @@ class ClientMongo(AsyncMongoClient):
 
         URI = os.getenv("URI_MONGO")
         if not URI:
-            sys.exit("URI MONGO NOT FOUND")
+            print("URI MONGO NOT FOUND")
+            #sys.exit("URI MONGO NOT FOUND")
 
         super().__init__(URI, **kwargs)
         self._initialized = True
