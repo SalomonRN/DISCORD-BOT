@@ -16,6 +16,7 @@ dependencies = [
     "charset-normalizer==3.4.1",
     "click==8.1.8",
     "colorama==0.4.6",
+    "discord-ext-voice-recv==0.5.2a179",
     "discord-py[voice]>=2.7.1",
     "dnspython==2.7.0",
     "frozenlist==1.6.0",
