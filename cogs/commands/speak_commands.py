@@ -1,5 +1,6 @@
 import os
 import re
+import asyncio
 import discord
 import discord.ext
 import discord.ext.commands
@@ -41,28 +42,34 @@ class SpeakCog(discord.ext.commands.Cog):
             else:
                 vc = ctx.author.voice.channel
             
-            bot_vc = ctx.voice_client
-            
-            if not bot_vc:
-                bot_vc = await vc.connect()
-            
-            elif bot_vc.channel != vc:
-                await bot_vc.move_to(vc)
-            
             list_users = re.findall(r"<@\d+[0-9]>", ctx.message.content)
 
             for user in list_users:
                 ctx.message.content = ctx.message.content.replace(user, self.bot.get_user(int(user[2:-1])).name)
-            
+
             if flag:
                 message = ctx.message.content.split(" ", 2)[2]
             else:
                 message = ctx.message.content.split(" ", 1)[1]
-            
-            file_name = create_audio(message)
+
+            # gTTS es bloqueante (hace una petición HTTP). Se ejecuta en otro hilo y ANTES de
+            # conectar: si bloquea el event loop con el bot ya conectado, el websocket de voz
+            # no puede responder, la conexión se cae y play() lanza "Not connected to voice."
+            file_name = await asyncio.to_thread(create_audio, message)
             if not os.path.exists(file_name):
                 return await ctx.send("No pude crear el audio, revisa el mensaje que enviaste.", ephemeral=True)
-            
+
+            bot_vc = ctx.voice_client
+
+            if not bot_vc:
+                bot_vc = await vc.connect()
+
+            elif bot_vc.channel != vc:
+                await bot_vc.move_to(vc)
+
+            if bot_vc.is_playing():
+                bot_vc.stop()
+
             bot_vc.play(discord.FFmpegPCMAudio(file_name))
         except Exception as e:
             print(f"Error al conectar al canal de voz: {e}")
